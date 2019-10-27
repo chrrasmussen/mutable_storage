@@ -19,4 +19,8 @@ defmodule MutableBuffer do
   end
 
   def add(_x, _y), do: :erlang.nif_error(:nif_not_loaded)
+
+  def new(_x), do: :erlang.nif_error(:nif_not_loaded)
+  def get_byte(_x, _y), do: :erlang.nif_error(:nif_not_loaded)
+  def set_byte(_x, _y, _z), do: :erlang.nif_error(:nif_not_loaded)
 end
