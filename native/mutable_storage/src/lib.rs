@@ -14,12 +14,12 @@ mod atoms {
 rustler::rustler_export_nifs! {
     "Elixir.MutableStorage",
     [
-        ("new", 1, buffer_new),
-        ("get_byte", 2, buffer_get_byte),
-        ("set_byte", 3, buffer_set_byte),
-        ("ioref_new", 1, ioref_new),
-        ("ioref_get", 1, ioref_get),
-        ("ioref_set", 2, ioref_set),
+        ("buffer_new", 1, buffer_new),
+        ("buffer_get_byte", 2, buffer_get_byte),
+        ("buffer_set_byte", 3, buffer_set_byte),
+        ("term_new", 1, term_new),
+        ("term_get", 1, term_get),
+        ("term_set", 2, term_set),
     ],
     Some(on_init)
 }
@@ -61,7 +61,7 @@ fn buffer_set_byte<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Erro
     Ok(atoms::ok().encode(env))
 }
 
-fn ioref_new<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
+fn term_new<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
     let term_binary = args[0].to_binary();
 
     let data = term_binary.to_vec();
@@ -72,7 +72,7 @@ fn ioref_new<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
     Ok(ResourceArc::new(buffer).encode(env))
 }
 
-fn ioref_get<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
+fn term_get<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
     let resource: ResourceArc<Buffer> = args[0].decode()?;
 
     let term_binary = resource.data.read().unwrap();
@@ -81,7 +81,7 @@ fn ioref_get<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
     Ok(term.encode(env))
 }
 
-fn ioref_set<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
+fn term_set<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
     let resource: ResourceArc<Buffer> = args[0].decode()?;
     let term_binary = args[1].to_binary();
 

@@ -5,11 +5,11 @@ defmodule MutableStorage do
   Documentation for MutableStorage.
   """
 
-  def new(_x), do: :erlang.nif_error(:nif_not_loaded)
-  def get_byte(_x, _y), do: :erlang.nif_error(:nif_not_loaded)
-  def set_byte(_x, _y, _z), do: :erlang.nif_error(:nif_not_loaded)
+  def buffer_new(_x), do: :erlang.nif_error(:nif_not_loaded)
+  def buffer_get_byte(_x, _y), do: :erlang.nif_error(:nif_not_loaded)
+  def buffer_set_byte(_x, _y, _z), do: :erlang.nif_error(:nif_not_loaded)
 
-  def ioref_new(_x), do: :erlang.nif_error(:nif_not_loaded)
-  def ioref_get(_x), do: :erlang.nif_error(:nif_not_loaded)
-  def ioref_set(_x, _y), do: :erlang.nif_error(:nif_not_loaded)
+  def term_new(_x), do: :erlang.nif_error(:nif_not_loaded)
+  def term_get(_x), do: :erlang.nif_error(:nif_not_loaded)
+  def term_set(_x, _y), do: :erlang.nif_error(:nif_not_loaded)
 end
