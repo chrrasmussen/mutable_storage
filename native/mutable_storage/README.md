@@ -1,4 +1,4 @@
-# NIF for Elixir.MutableBuffer
+# NIF for Elixir.MutableStorage
 
 ## To build the NIF module:
 
@@ -9,8 +9,8 @@
 ## To load the NIF:
 
 ```elixir
-defmodule MutableBuffer do
-    use Rustler, otp_app: <otp-app>, crate: "mutable_buffer"
+defmodule MutableStorage do
+    use Rustler, otp_app: <otp-app>, crate: "mutable_storage"
 
     # When your NIF is loaded, it will override this function.
     def add(_a, _b), do: :erlang.nif_error(:nif_not_loaded)

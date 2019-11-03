@@ -1,8 +1,8 @@
-defmodule MutableBuffer do
-  use Rustler, otp_app: :mutable_buffer, crate: :mutable_buffer
+defmodule MutableStorage do
+  use Rustler, otp_app: :mutable_storage, crate: :mutable_storage
 
   @moduledoc """
-  Documentation for MutableBuffer.
+  Documentation for MutableStorage.
   """
 
   def new(_x), do: :erlang.nif_error(:nif_not_loaded)

@@ -12,7 +12,7 @@ mod atoms {
 }
 
 rustler::rustler_export_nifs! {
-    "Elixir.MutableBuffer",
+    "Elixir.MutableStorage",
     [
         ("new", 1, buffer_new),
         ("get_byte", 2, buffer_get_byte),
@@ -60,7 +60,6 @@ fn buffer_set_byte<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Erro
     resource.data.write().unwrap()[offset] = byte;
     Ok(atoms::ok().encode(env))
 }
-
 
 fn ioref_new<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
     let term_binary = args[0].to_binary();

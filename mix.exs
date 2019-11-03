@@ -1,9 +1,9 @@
-defmodule MutableBuffer.MixProject do
+defmodule MutableStorage.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :mutable_buffer,
+      app: :mutable_storage,
       version: "0.1.0",
       elixir: "~> 1.9",
       compilers: [:rustler] ++ Mix.compilers(),
@@ -23,7 +23,7 @@ defmodule MutableBuffer.MixProject do
 
   defp aliases do
     [
-      test: ["cmd cd native/mutable_buffer && cargo test", "test"]
+      test: ["cmd cd native/mutable_storage && cargo test", "test"]
     ]
   end
 
@@ -36,8 +36,8 @@ defmodule MutableBuffer.MixProject do
 
   defp rustler_crates do
     [
-      mutable_buffer: [
-        path: "native/mutable_buffer",
+      mutable_storage: [
+        path: "native/mutable_storage",
         mode: if(Mix.env() == :prod, do: :release, else: :debug)
       ]
     ]
