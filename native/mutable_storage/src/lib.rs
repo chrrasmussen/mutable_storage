@@ -10,7 +10,7 @@ mod atoms {
     }
 }
 
-rustler::init!("Elixir.MutableStorage", [
+rustler::init!("mutable_storage", [
     buffer_new,
     buffer_raw_size,
     buffer_get_bits8,

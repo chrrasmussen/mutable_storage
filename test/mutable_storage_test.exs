@@ -1,8 +1,8 @@
 defmodule MutableStorageTest do
   use ExUnit.Case
-  doctest MutableStorage
+  # doctest MutableStorage
 
-  @sut_module MutableStorage
+  @sut_module :mutable_storage
 
   test "buffer raw size" do
     ref = @sut_module.buffer_new(10)

@@ -7,6 +7,7 @@ defmodule MutableStorage.MixProject do
       version: "0.1.0",
       elixir: "~> 1.9",
       compilers: [:rustler] ++ Mix.compilers(),
+      erlc_paths: ["lib"],
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
