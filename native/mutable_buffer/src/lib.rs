@@ -56,18 +56,18 @@ fn buffer_new<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
 }
 
 fn buffer_get_byte<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let buffer: ResourceArc<Buffer> = args[0].decode()?;
+    let resource: ResourceArc<Buffer> = args[0].decode()?;
     let offset: usize = args[1].decode()?;
 
-    let byte = buffer.data.read().unwrap()[offset];
+    let byte = resource.data.read().unwrap()[offset];
     Ok(byte.encode(env))
 }
 
 fn buffer_set_byte<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let buffer: ResourceArc<Buffer> = args[0].decode()?;
+    let resource: ResourceArc<Buffer> = args[0].decode()?;
     let offset: usize = args[1].decode()?;
     let byte = args[2].decode()?;
 
-    buffer.data.write().unwrap()[offset] = byte;
+    resource.data.write().unwrap()[offset] = byte;
     Ok(byte.encode(env))
 }
