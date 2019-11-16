@@ -17,6 +17,12 @@ defmodule MutableStorageTest do
     assert @sut_module.buffer_get_byte(ref, 0) == 42
   end
 
+  test "buffer byte with offset=10" do
+    ref = @sut_module.buffer_new(11)
+    assert @sut_module.buffer_set_byte(ref, 10, 37) == :ok
+    assert @sut_module.buffer_get_byte(ref, 10) == 37
+  end
+
   test "buffer int with offset=0" do
     ref = @sut_module.buffer_new(8)
     assert @sut_module.buffer_set_int(ref, 0, 256) == :ok
