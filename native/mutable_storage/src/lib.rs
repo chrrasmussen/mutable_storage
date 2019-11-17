@@ -21,6 +21,8 @@ rustler::rustler_export_nifs! {
         ("buffer_set_byte", 3, buffer_set_byte),
         ("buffer_get_int", 2, buffer_get_int),
         ("buffer_set_int", 3, buffer_set_int),
+        ("buffer_get_double", 2, buffer_get_double),
+        ("buffer_set_double", 3, buffer_set_double),
         ("term_new", 1, term_new),
         ("term_get", 1, term_get),
         ("term_set", 2, term_set),
@@ -33,6 +35,7 @@ struct Buffer {
 }
 
 type IntType = i64;
+type DoubleType = f64;
 
 fn on_init<'a>(env: Env<'a>, _load_info: Term<'a>) -> bool {
     rustler::resource_struct_init!(Buffer, env);
@@ -89,6 +92,34 @@ fn buffer_set_int<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error
     let mut data = resource.data.write().unwrap();
     data.splice(
         offset..(offset + mem::size_of::<IntType>()),
+        bytes.iter().cloned(),
+    );
+
+    Ok(atoms::ok().encode(env))
+}
+
+fn buffer_get_double<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
+    let resource: ResourceArc<Buffer> = args[0].decode()?;
+    let offset: usize = args[1].decode()?;
+
+    let data = resource.data.read().unwrap();
+    let bytes = data[offset..(offset + mem::size_of::<DoubleType>())]
+        .try_into()
+        .unwrap();
+    let int = DoubleType::from_ne_bytes(bytes);
+
+    Ok(int.encode(env))
+}
+
+fn buffer_set_double<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
+    let resource: ResourceArc<Buffer> = args[0].decode()?;
+    let offset: usize = args[1].decode()?;
+    let int: DoubleType = args[2].decode()?;
+
+    let bytes = int.to_ne_bytes();
+    let mut data = resource.data.write().unwrap();
+    data.splice(
+        offset..(offset + mem::size_of::<DoubleType>()),
         bytes.iter().cloned(),
     );
 
