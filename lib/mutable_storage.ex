@@ -12,6 +12,8 @@ defmodule MutableStorage do
   def buffer_set_int(_x, _y, _z), do: :erlang.nif_error(:nif_not_loaded)
   def buffer_get_double(_x, _y), do: :erlang.nif_error(:nif_not_loaded)
   def buffer_set_double(_x, _y, _z), do: :erlang.nif_error(:nif_not_loaded)
+  def buffer_get_binary(_x, _y, _z), do: :erlang.nif_error(:nif_not_loaded)
+  def buffer_set_binary(_x, _y, _z), do: :erlang.nif_error(:nif_not_loaded)
 
   def term_new(_x), do: :erlang.nif_error(:nif_not_loaded)
   def term_get(_x), do: :erlang.nif_error(:nif_not_loaded)

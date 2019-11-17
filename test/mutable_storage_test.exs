@@ -46,4 +46,22 @@ defmodule MutableStorageTest do
     assert @sut_module.buffer_set_double(ref, 2, 42.42) == :ok
     assert @sut_module.buffer_get_double(ref, 2) == 42.42
   end
+
+  test "buffer binary with offset=0" do
+    ref = @sut_module.buffer_new(4)
+    assert @sut_module.buffer_set_binary(ref, 0, "test") == :ok
+    assert @sut_module.buffer_get_binary(ref, 0, 4) == "test"
+  end
+
+  test "buffer binary with offset=1" do
+    ref = @sut_module.buffer_new(6)
+    assert @sut_module.buffer_set_binary(ref, 1, "hello") == :ok
+    assert @sut_module.buffer_get_binary(ref, 1, 5) == "hello"
+  end
+
+  test "buffer binary with unicode characters" do
+    ref = @sut_module.buffer_new(2)
+    assert @sut_module.buffer_set_binary(ref, 0, "ƒ") == :ok
+    assert @sut_module.buffer_get_binary(ref, 0, 2) == "ƒ"
+  end
 end

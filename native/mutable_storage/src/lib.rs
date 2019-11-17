@@ -1,4 +1,4 @@
-use rustler::{Encoder, Env, Error, ResourceArc, Term};
+use rustler::{Binary, Encoder, Env, Error, OwnedBinary, ResourceArc, Term};
 use std::convert::TryInto;
 use std::io::Write;
 use std::mem;
@@ -23,6 +23,8 @@ rustler::rustler_export_nifs! {
         ("buffer_set_int", 3, buffer_set_int),
         ("buffer_get_double", 2, buffer_get_double),
         ("buffer_set_double", 3, buffer_set_double),
+        ("buffer_get_binary", 3, buffer_get_binary),
+        ("buffer_set_binary", 3, buffer_set_binary),
         ("term_new", 1, term_new),
         ("term_get", 1, term_get),
         ("term_set", 2, term_set),
@@ -122,6 +124,31 @@ fn buffer_set_double<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Er
         offset..(offset + mem::size_of::<DoubleType>()),
         bytes.iter().cloned(),
     );
+
+    Ok(atoms::ok().encode(env))
+}
+
+fn buffer_get_binary<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
+    let resource: ResourceArc<Buffer> = args[0].decode()?;
+    let offset: usize = args[1].decode()?;
+    let length: usize = args[2].decode()?;
+
+    let mut binary = OwnedBinary::new(length).unwrap();
+    let data = resource.data.read().unwrap();
+    let bytes = &data[offset..(offset + length)];
+    binary.as_mut_slice().write(bytes).unwrap();
+
+    Ok(Binary::from_owned(binary, env).encode(env))
+}
+
+fn buffer_set_binary<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
+    let resource: ResourceArc<Buffer> = args[0].decode()?;
+    let offset: usize = args[1].decode()?;
+    let binary: Binary = args[2].decode()?;
+
+    let bytes = binary.as_slice();
+    let mut data = resource.data.write().unwrap();
+    data.splice(offset..(offset + bytes.len()), bytes.iter().cloned());
 
     Ok(atoms::ok().encode(env))
 }
