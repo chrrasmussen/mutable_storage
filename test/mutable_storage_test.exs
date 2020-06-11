@@ -69,4 +69,12 @@ defmodule MutableStorageTest do
     assert @sut_module.buffer_set_binary(ref, 0, "ƒ") == :ok
     assert @sut_module.buffer_get_binary(ref, 0, 2) == "ƒ"
   end
+
+  test "buffer copy" do
+    src_ref = @sut_module.buffer_new(10)
+    dest_ref = @sut_module.buffer_new(10)
+    assert @sut_module.buffer_set_binary(src_ref, 0, "abc") == :ok
+    @sut_module.buffer_copy(src_ref, 0, 5, dest_ref, 5)
+    assert @sut_module.buffer_get_binary(dest_ref, 5, 3) == "abc"
+  end
 end
