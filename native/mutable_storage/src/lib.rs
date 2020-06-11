@@ -30,6 +30,7 @@ rustler::init!("Elixir.MutableStorage", [
     buffer_get_binary,
     buffer_set_binary,
     buffer_copy,
+    buffer_resize,
     term_new,
     term_get,
     term_set,
@@ -223,6 +224,14 @@ fn buffer_copy(src_resource: ResourceArc<Buffer>, src_offset: usize, length: usi
     for i in 0..length {
         dest_data[dest_offset + i] = src_data[src_offset + i];
     }
+
+    atoms::ok()
+}
+
+#[rustler::nif]
+fn buffer_resize(resource: ResourceArc<Buffer>, new_size: usize) -> Atom {
+    let mut data = resource.data.write().unwrap();
+    data.resize_with(new_size, Default::default);
 
     atoms::ok()
 }

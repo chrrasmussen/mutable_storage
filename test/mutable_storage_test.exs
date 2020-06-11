@@ -77,4 +77,15 @@ defmodule MutableStorageTest do
     @sut_module.buffer_copy(src_ref, 0, 5, dest_ref, 5)
     assert @sut_module.buffer_get_binary(dest_ref, 5, 3) == "abc"
   end
+
+  test "buffer resize" do
+    ref = @sut_module.buffer_new(10)
+    assert @sut_module.buffer_raw_size(ref) == 10
+
+    @sut_module.buffer_resize(ref, 5)
+    assert @sut_module.buffer_raw_size(ref) == 5
+
+    @sut_module.buffer_resize(ref, 15)
+    assert @sut_module.buffer_raw_size(ref) == 15
+  end
 end
