@@ -208,7 +208,9 @@ fn buffer_get_binary(env: Env, resource: ResourceArc<Buffer>, offset: usize, len
 fn buffer_set_binary(resource: ResourceArc<Buffer>, offset: usize, payload: Binary) -> Atom {
     let bytes = payload.as_slice();
     let mut data = resource.data.write().unwrap();
-    data.splice(offset..(offset + bytes.len()), bytes.iter().cloned());
+    for i in 0..bytes.len() {
+        data[offset + i] = bytes[i];
+    }
 
     atoms::ok()
 }
@@ -216,10 +218,10 @@ fn buffer_set_binary(resource: ResourceArc<Buffer>, offset: usize, payload: Bina
 #[rustler::nif]
 fn buffer_copy(src: ResourceArc<Buffer>, start: usize, length: usize, dest: ResourceArc<Buffer>, offset: usize) -> Atom {
     let src_data = src.data.read().unwrap();
-    let bytes = &src_data[start..(start + length)];
-
     let mut dest_data = dest.data.write().unwrap();
-    dest_data.splice(offset..(offset + bytes.len()), bytes.iter().cloned());
+    for i in 0..length {
+        dest_data[offset + i] = src_data[start + i];
+    }
 
     atoms::ok()
 }
