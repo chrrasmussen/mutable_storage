@@ -216,11 +216,11 @@ fn buffer_set_binary(resource: ResourceArc<Buffer>, offset: usize, payload: Bina
 }
 
 #[rustler::nif]
-fn buffer_copy(src: ResourceArc<Buffer>, start: usize, length: usize, dest: ResourceArc<Buffer>, offset: usize) -> Atom {
-    let src_data = src.data.read().unwrap();
-    let mut dest_data = dest.data.write().unwrap();
+fn buffer_copy(src_resource: ResourceArc<Buffer>, src_offset: usize, length: usize, dest_resource: ResourceArc<Buffer>, dest_offset: usize) -> Atom {
+    let src_data = src_resource.data.read().unwrap();
+    let mut dest_data = dest_resource.data.write().unwrap();
     for i in 0..length {
-        dest_data[offset + i] = src_data[start + i];
+        dest_data[dest_offset + i] = src_data[src_offset + i];
     }
 
     atoms::ok()
