@@ -12,10 +12,18 @@ mod atoms {
 
 rustler::init!("Elixir.MutableStorage", [
     buffer_new,
-    buffer_get_byte,
-    buffer_set_byte,
-    buffer_get_int,
-    buffer_set_int,
+    buffer_get_bits8,
+    buffer_set_bits8,
+    buffer_get_bits16,
+    buffer_set_bits16,
+    buffer_get_bits32,
+    buffer_set_bits32,
+    buffer_get_bits64,
+    buffer_set_bits64,
+    buffer_get_int32,
+    buffer_set_int32,
+    buffer_get_int64,
+    buffer_set_int64,
     buffer_get_double,
     buffer_set_double,
     buffer_get_binary,
@@ -28,9 +36,6 @@ rustler::init!("Elixir.MutableStorage", [
 struct Buffer {
     data: RwLock<Vec<u8>>,
 }
-
-type IntType = i64;
-type DoubleType = f64;
 
 fn load(env: Env, _: Term) -> bool {
     rustler::resource!(Buffer, env);
@@ -46,32 +51,32 @@ fn buffer_new(buffer_size: usize) -> ResourceArc<Buffer> {
 }
 
 #[rustler::nif]
-fn buffer_get_byte(resource: ResourceArc<Buffer>, offset: usize) -> u8 {
+fn buffer_get_bits8(resource: ResourceArc<Buffer>, offset: usize) -> u8 {
     resource.data.read().unwrap()[offset]
 }
 
 #[rustler::nif]
-fn buffer_set_byte(resource: ResourceArc<Buffer>, offset: usize, payload: u8) -> Atom {
+fn buffer_set_bits8(resource: ResourceArc<Buffer>, offset: usize, payload: u8) -> Atom {
     resource.data.write().unwrap()[offset] = payload;
 
     atoms::ok()
 }
 
 #[rustler::nif]
-fn buffer_get_int(resource: ResourceArc<Buffer>, offset: usize) -> IntType {
+fn buffer_get_bits16(resource: ResourceArc<Buffer>, offset: usize) -> u16 {
     let data = resource.data.read().unwrap();
-    let bytes = data[offset..(offset + mem::size_of::<IntType>())]
+    let bytes = data[offset..(offset + mem::size_of::<u16>())]
         .try_into()
         .unwrap();
-    IntType::from_ne_bytes(bytes)
+    u16::from_ne_bytes(bytes)
 }
 
 #[rustler::nif]
-fn buffer_set_int(resource: ResourceArc<Buffer>, offset: usize, payload: IntType) -> Atom {
+fn buffer_set_bits16(resource: ResourceArc<Buffer>, offset: usize, payload: u16) -> Atom {
     let bytes = payload.to_ne_bytes();
     let mut data = resource.data.write().unwrap();
     data.splice(
-        offset..(offset + mem::size_of::<IntType>()),
+        offset..(offset + mem::size_of::<u16>()),
         bytes.iter().cloned(),
     );
 
@@ -79,20 +84,104 @@ fn buffer_set_int(resource: ResourceArc<Buffer>, offset: usize, payload: IntType
 }
 
 #[rustler::nif]
-fn buffer_get_double(resource: ResourceArc<Buffer>, offset: usize) -> DoubleType {
+fn buffer_get_bits32(resource: ResourceArc<Buffer>, offset: usize) -> u32 {
     let data = resource.data.read().unwrap();
-    let bytes = data[offset..(offset + mem::size_of::<DoubleType>())]
+    let bytes = data[offset..(offset + mem::size_of::<u32>())]
         .try_into()
         .unwrap();
-    DoubleType::from_ne_bytes(bytes)
+    u32::from_ne_bytes(bytes)
 }
 
 #[rustler::nif]
-fn buffer_set_double(resource: ResourceArc<Buffer>, offset: usize, payload: DoubleType) -> Atom {
+fn buffer_set_bits32(resource: ResourceArc<Buffer>, offset: usize, payload: u32) -> Atom {
     let bytes = payload.to_ne_bytes();
     let mut data = resource.data.write().unwrap();
     data.splice(
-        offset..(offset + mem::size_of::<DoubleType>()),
+        offset..(offset + mem::size_of::<u32>()),
+        bytes.iter().cloned(),
+    );
+
+    atoms::ok()
+}
+
+#[rustler::nif]
+fn buffer_get_bits64(resource: ResourceArc<Buffer>, offset: usize) -> u64 {
+    let data = resource.data.read().unwrap();
+    let bytes = data[offset..(offset + mem::size_of::<u64>())]
+        .try_into()
+        .unwrap();
+    u64::from_ne_bytes(bytes)
+}
+
+#[rustler::nif]
+fn buffer_set_bits64(resource: ResourceArc<Buffer>, offset: usize, payload: u64) -> Atom {
+    let bytes = payload.to_ne_bytes();
+    let mut data = resource.data.write().unwrap();
+    data.splice(
+        offset..(offset + mem::size_of::<u64>()),
+        bytes.iter().cloned(),
+    );
+
+    atoms::ok()
+}
+
+#[rustler::nif]
+fn buffer_get_int32(resource: ResourceArc<Buffer>, offset: usize) -> i32 {
+    let data = resource.data.read().unwrap();
+    let bytes = data[offset..(offset + mem::size_of::<i32>())]
+        .try_into()
+        .unwrap();
+    i32::from_ne_bytes(bytes)
+}
+
+#[rustler::nif]
+fn buffer_set_int32(resource: ResourceArc<Buffer>, offset: usize, payload: i32) -> Atom {
+    let bytes = payload.to_ne_bytes();
+    let mut data = resource.data.write().unwrap();
+    data.splice(
+        offset..(offset + mem::size_of::<i32>()),
+        bytes.iter().cloned(),
+    );
+
+    atoms::ok()
+}
+
+#[rustler::nif]
+fn buffer_get_int64(resource: ResourceArc<Buffer>, offset: usize) -> i64 {
+    let data = resource.data.read().unwrap();
+    let bytes = data[offset..(offset + mem::size_of::<i64>())]
+        .try_into()
+        .unwrap();
+    i64::from_ne_bytes(bytes)
+}
+
+#[rustler::nif]
+fn buffer_set_int64(resource: ResourceArc<Buffer>, offset: usize, payload: i64) -> Atom {
+    let bytes = payload.to_ne_bytes();
+    let mut data = resource.data.write().unwrap();
+    data.splice(
+        offset..(offset + mem::size_of::<i64>()),
+        bytes.iter().cloned(),
+    );
+
+    atoms::ok()
+}
+
+#[rustler::nif]
+fn buffer_get_double(resource: ResourceArc<Buffer>, offset: usize) -> f64 {
+    let data = resource.data.read().unwrap();
+    let bytes = data[offset..(offset + mem::size_of::<f64>())]
+        .try_into()
+        .unwrap();
+    f64::from_ne_bytes(bytes)
+}
+
+#[rustler::nif]
+fn buffer_set_double(resource: ResourceArc<Buffer>, offset: usize, payload: f64) -> Atom {
+    let bytes = payload.to_ne_bytes();
+    let mut data = resource.data.write().unwrap();
+    data.splice(
+        offset..(offset + mem::size_of::<f64>()),
         bytes.iter().cloned(),
     );
 

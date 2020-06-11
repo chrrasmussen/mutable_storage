@@ -11,28 +11,28 @@ defmodule MutableStorageTest do
     assert @sut_module.term_get(ref) == 43
   end
 
-  test "buffer byte with offset=0" do
+  test "buffer bits8 with offset=0" do
     ref = @sut_module.buffer_new(1)
-    assert @sut_module.buffer_set_byte(ref, 0, 42) == :ok
-    assert @sut_module.buffer_get_byte(ref, 0) == 42
+    assert @sut_module.buffer_set_bits8(ref, 0, 42) == :ok
+    assert @sut_module.buffer_get_bits8(ref, 0) == 42
   end
 
-  test "buffer byte with offset=10" do
+  test "buffer bits8 with offset=10" do
     ref = @sut_module.buffer_new(11)
-    assert @sut_module.buffer_set_byte(ref, 10, 37) == :ok
-    assert @sut_module.buffer_get_byte(ref, 10) == 37
+    assert @sut_module.buffer_set_bits8(ref, 10, 37) == :ok
+    assert @sut_module.buffer_get_bits8(ref, 10) == 37
   end
 
-  test "buffer int with offset=0" do
+  test "buffer int32 with offset=0" do
     ref = @sut_module.buffer_new(8)
-    assert @sut_module.buffer_set_int(ref, 0, 256) == :ok
-    assert @sut_module.buffer_get_int(ref, 0) == 256
+    assert @sut_module.buffer_set_int32(ref, 0, 256) == :ok
+    assert @sut_module.buffer_get_int32(ref, 0) == 256
   end
 
-  test "buffer int with offset=2" do
+  test "buffer int32 with offset=2" do
     ref = @sut_module.buffer_new(10)
-    assert @sut_module.buffer_set_int(ref, 2, 4242) == :ok
-    assert @sut_module.buffer_get_int(ref, 2) == 4242
+    assert @sut_module.buffer_set_int32(ref, 2, 4242) == :ok
+    assert @sut_module.buffer_get_int32(ref, 2) == 4242
   end
 
   test "buffer double with offset=0" do
