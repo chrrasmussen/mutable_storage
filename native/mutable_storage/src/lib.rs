@@ -12,6 +12,7 @@ mod atoms {
 
 rustler::init!("Elixir.MutableStorage", [
     buffer_new,
+    buffer_raw_size,
     buffer_get_bits8,
     buffer_set_bits8,
     buffer_get_bits16,
@@ -48,6 +49,11 @@ fn buffer_new(buffer_size: usize) -> ResourceArc<Buffer> {
     ResourceArc::new(Buffer {
         data: RwLock::new(data),
     })
+}
+
+#[rustler::nif]
+fn buffer_raw_size(resource: ResourceArc<Buffer>) -> usize {
+    resource.data.read().unwrap().len()
 }
 
 #[rustler::nif]

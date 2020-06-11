@@ -11,6 +11,11 @@ defmodule MutableStorageTest do
     assert @sut_module.term_get(ref) == 43
   end
 
+  test "buffer raw size" do
+    ref = @sut_module.buffer_new(10)
+    assert @sut_module.buffer_raw_size(ref) == 10
+  end
+
   test "buffer bits8 with offset=0" do
     ref = @sut_module.buffer_new(1)
     assert @sut_module.buffer_set_bits8(ref, 0, 42) == :ok
