@@ -1,36 +1,29 @@
-use rustler::{Binary, Encoder, Env, Error, OwnedBinary, ResourceArc, Term};
+use rustler::{Atom, Binary, Env, OwnedBinary, ResourceArc, Term};
 use std::convert::TryInto;
 use std::io::Write;
 use std::mem;
 use std::sync::RwLock;
 
 mod atoms {
-    rustler::rustler_atoms! {
-        atom ok;
-        //atom error;
-        //atom __true__ = "true";
-        //atom __false__ = "false";
+    rustler::atoms! {
+        ok,
     }
 }
 
-rustler::rustler_export_nifs! {
-    "Elixir.MutableStorage",
-    [
-        ("buffer_new", 1, buffer_new),
-        ("buffer_get_byte", 2, buffer_get_byte),
-        ("buffer_set_byte", 3, buffer_set_byte),
-        ("buffer_get_int", 2, buffer_get_int),
-        ("buffer_set_int", 3, buffer_set_int),
-        ("buffer_get_double", 2, buffer_get_double),
-        ("buffer_set_double", 3, buffer_set_double),
-        ("buffer_get_binary", 3, buffer_get_binary),
-        ("buffer_set_binary", 3, buffer_set_binary),
-        ("term_new", 1, term_new),
-        ("term_get", 1, term_get),
-        ("term_set", 2, term_set),
-    ],
-    Some(on_init)
-}
+rustler::init!("Elixir.MutableStorage", [
+    buffer_new,
+    buffer_get_byte,
+    buffer_set_byte,
+    buffer_get_int,
+    buffer_set_int,
+    buffer_get_double,
+    buffer_set_double,
+    buffer_get_binary,
+    buffer_set_binary,
+    term_new,
+    term_get,
+    term_set,
+], load = load);
 
 struct Buffer {
     data: RwLock<Vec<u8>>,
@@ -39,148 +32,114 @@ struct Buffer {
 type IntType = i64;
 type DoubleType = f64;
 
-fn on_init<'a>(env: Env<'a>, _load_info: Term<'a>) -> bool {
-    rustler::resource_struct_init!(Buffer, env);
+fn load(env: Env, _: Term) -> bool {
+    rustler::resource!(Buffer, env);
     true
 }
 
-fn buffer_new<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let buffer_size: usize = args[0].decode()?;
-
+#[rustler::nif]
+fn buffer_new(buffer_size: usize) -> ResourceArc<Buffer> {
     let data = vec![0; buffer_size];
-    let buffer = Buffer {
+    ResourceArc::new(Buffer {
         data: RwLock::new(data),
-    };
-
-    Ok(ResourceArc::new(buffer).encode(env))
+    })
 }
 
-fn buffer_get_byte<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<Buffer> = args[0].decode()?;
-    let offset: usize = args[1].decode()?;
-
-    let byte = resource.data.read().unwrap()[offset];
-    Ok(byte.encode(env))
+#[rustler::nif]
+fn buffer_get_byte(resource: ResourceArc<Buffer>, offset: usize) -> u8 {
+    resource.data.read().unwrap()[offset]
 }
 
-fn buffer_set_byte<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<Buffer> = args[0].decode()?;
-    let offset: usize = args[1].decode()?;
-    let byte = args[2].decode()?;
+#[rustler::nif]
+fn buffer_set_byte(resource: ResourceArc<Buffer>, offset: usize, payload: u8) -> Atom {
+    resource.data.write().unwrap()[offset] = payload;
 
-    resource.data.write().unwrap()[offset] = byte;
-    Ok(atoms::ok().encode(env))
+    atoms::ok()
 }
 
-fn buffer_get_int<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<Buffer> = args[0].decode()?;
-    let offset: usize = args[1].decode()?;
-
+#[rustler::nif]
+fn buffer_get_int(resource: ResourceArc<Buffer>, offset: usize) -> IntType {
     let data = resource.data.read().unwrap();
     let bytes = data[offset..(offset + mem::size_of::<IntType>())]
         .try_into()
         .unwrap();
-    let int = IntType::from_ne_bytes(bytes);
-
-    Ok(int.encode(env))
+    IntType::from_ne_bytes(bytes)
 }
 
-fn buffer_set_int<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<Buffer> = args[0].decode()?;
-    let offset: usize = args[1].decode()?;
-    let int: IntType = args[2].decode()?;
-
-    let bytes = int.to_ne_bytes();
+#[rustler::nif]
+fn buffer_set_int(resource: ResourceArc<Buffer>, offset: usize, payload: IntType) -> Atom {
+    let bytes = payload.to_ne_bytes();
     let mut data = resource.data.write().unwrap();
     data.splice(
         offset..(offset + mem::size_of::<IntType>()),
         bytes.iter().cloned(),
     );
 
-    Ok(atoms::ok().encode(env))
+    atoms::ok()
 }
 
-fn buffer_get_double<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<Buffer> = args[0].decode()?;
-    let offset: usize = args[1].decode()?;
-
+#[rustler::nif]
+fn buffer_get_double(resource: ResourceArc<Buffer>, offset: usize) -> DoubleType {
     let data = resource.data.read().unwrap();
     let bytes = data[offset..(offset + mem::size_of::<DoubleType>())]
         .try_into()
         .unwrap();
-    let int = DoubleType::from_ne_bytes(bytes);
-
-    Ok(int.encode(env))
+    DoubleType::from_ne_bytes(bytes)
 }
 
-fn buffer_set_double<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<Buffer> = args[0].decode()?;
-    let offset: usize = args[1].decode()?;
-    let int: DoubleType = args[2].decode()?;
-
-    let bytes = int.to_ne_bytes();
+#[rustler::nif]
+fn buffer_set_double(resource: ResourceArc<Buffer>, offset: usize, payload: DoubleType) -> Atom {
+    let bytes = payload.to_ne_bytes();
     let mut data = resource.data.write().unwrap();
     data.splice(
         offset..(offset + mem::size_of::<DoubleType>()),
         bytes.iter().cloned(),
     );
 
-    Ok(atoms::ok().encode(env))
+    atoms::ok()
 }
 
-fn buffer_get_binary<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<Buffer> = args[0].decode()?;
-    let offset: usize = args[1].decode()?;
-    let length: usize = args[2].decode()?;
-
+#[rustler::nif]
+fn buffer_get_binary(env: Env, resource: ResourceArc<Buffer>, offset: usize, length: usize) -> Binary {
     let mut binary = OwnedBinary::new(length).unwrap();
     let data = resource.data.read().unwrap();
     let bytes = &data[offset..(offset + length)];
     binary.as_mut_slice().write(bytes).unwrap();
-
-    Ok(Binary::from_owned(binary, env).encode(env))
+    binary.release(env)
 }
 
-fn buffer_set_binary<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<Buffer> = args[0].decode()?;
-    let offset: usize = args[1].decode()?;
-    let binary: Binary = args[2].decode()?;
-
-    let bytes = binary.as_slice();
+#[rustler::nif]
+fn buffer_set_binary(resource: ResourceArc<Buffer>, offset: usize, payload: Binary) -> Atom {
+    let bytes = payload.as_slice();
     let mut data = resource.data.write().unwrap();
     data.splice(offset..(offset + bytes.len()), bytes.iter().cloned());
 
-    Ok(atoms::ok().encode(env))
+    atoms::ok()
 }
 
-fn term_new<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let term_binary = args[0].to_binary();
-
-    let data = term_binary.to_vec();
+#[rustler::nif]
+fn term_new(term: Term) -> ResourceArc<Buffer> {
+    let data = term.to_binary().to_vec();
     let buffer = Buffer {
         data: RwLock::new(data),
     };
 
-    Ok(ResourceArc::new(buffer).encode(env))
+    ResourceArc::new(buffer)
 }
 
-fn term_get<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<Buffer> = args[0].decode()?;
-
+#[rustler::nif]
+fn term_get(env: Env, resource: ResourceArc<Buffer>) -> Term {
     let term_binary = resource.data.read().unwrap();
     let (term, _size) = env.binary_to_term(term_binary.as_slice()).unwrap();
-
-    Ok(term.encode(env))
+    term
 }
 
-fn term_set<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<Buffer> = args[0].decode()?;
-    let term_binary = args[1].to_binary();
-
+#[rustler::nif]
+fn term_set(resource: ResourceArc<Buffer>, term: Term) -> Atom {
     let mut data = resource.data.write().unwrap();
     data.clear();
-    data.write(term_binary.as_slice()).unwrap();
+    data.write(term.to_binary().as_slice()).unwrap();
     data.shrink_to_fit();
 
-    Ok(atoms::ok().encode(env))
+    atoms::ok()
 }
