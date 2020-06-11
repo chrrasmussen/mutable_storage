@@ -197,9 +197,10 @@ fn buffer_set_double(resource: ResourceArc<Buffer>, offset: usize, payload: f64)
 
 #[rustler::nif]
 fn buffer_get_binary(env: Env, resource: ResourceArc<Buffer>, offset: usize, length: usize) -> Binary {
-    let mut binary = OwnedBinary::new(length).unwrap();
     let data = resource.data.read().unwrap();
     let bytes = &data[offset..(offset + length)];
+
+    let mut binary = OwnedBinary::new(length).unwrap();
     binary.as_mut_slice().write(bytes).unwrap();
     binary.release(env)
 }
