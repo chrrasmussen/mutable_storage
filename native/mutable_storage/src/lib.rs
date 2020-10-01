@@ -42,7 +42,7 @@ struct Buffer {
 
 fn load(env: Env, _: Term) -> bool {
     rustler::resource!(Buffer, env);
-    rustler::resource!(TermArc, env);
+    rustler::resource!(MutableTermBox, env);
     true
 }
 
@@ -238,38 +238,37 @@ fn buffer_resize(resource: ResourceArc<Buffer>, new_size: usize) -> Atom {
 }
 
 #[rustler::nif]
-fn term_new(term: Term) -> ResourceArc<TermArc> {
-    ResourceArc::new(TermArc::new(term.clone()))
+fn term_new(term: Term) -> ResourceArc<MutableTermBox> {
+    ResourceArc::new(MutableTermBox::new(term.clone()))
 }
 
 #[rustler::nif]
-fn term_get<'a>(env: Env<'a>, resource: ResourceArc<TermArc>) -> Term<'a> {
+fn term_get<'a>(env: Env<'a>, resource: ResourceArc<MutableTermBox>) -> Term<'a> {
     resource.get(env)
 }
 
 #[rustler::nif]
-fn term_set(resource: ResourceArc<TermArc>, term: Term) -> Atom {
+fn term_set(resource: ResourceArc<MutableTermBox>, term: Term) -> Atom {
     resource.set(term)
 }
 
 use rustler::env::OwnedEnv;
 use rustler::env::SavedTerm;
 
-#[derive(Clone)]
-pub struct TermArc
+pub struct MutableTermBox
 {
-    inner: std::sync::Arc<std::sync::Mutex<TermArcAux>>,
+    inner: std::sync::Mutex<MutableTermBoxContents>,
 }
 
-pub struct TermArcAux
+pub struct MutableTermBoxContents
 {
     owned_env: OwnedEnv,
     saved_term: SavedTerm
 }
 
-impl TermArc {
+impl MutableTermBox {
     pub fn new(term: Term) -> Self {
-        Self{inner: std::sync::Arc::new(std::sync::Mutex::new(TermArcAux::new(term)))}
+        Self{inner: std::sync::Mutex::new(MutableTermBoxContents::new(term))}
     }
 
     pub fn get<'a>(&self, env: Env<'a>) -> Term<'a> {
@@ -291,7 +290,7 @@ impl TermArc {
     }
 }
 
-impl TermArcAux {
+impl MutableTermBoxContents {
     pub fn new(term: Term) -> Self {
         let owned_env = OwnedEnv::new();
         let saved_term = owned_env.save(term);
