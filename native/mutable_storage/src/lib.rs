@@ -42,6 +42,7 @@ struct Buffer {
 
 fn load(env: Env, _: Term) -> bool {
     rustler::resource!(Buffer, env);
+    rustler::resource!(MutableTermBox, env);
     true
 }
 
@@ -237,28 +238,62 @@ fn buffer_resize(resource: ResourceArc<Buffer>, new_size: usize) -> Atom {
 }
 
 #[rustler::nif]
-fn term_new(term: Term) -> ResourceArc<Buffer> {
-    let data = term.to_binary().to_vec();
-    let buffer = Buffer {
-        data: RwLock::new(data),
-    };
-
-    ResourceArc::new(buffer)
+fn term_new(term: Term) -> ResourceArc<MutableTermBox> {
+    ResourceArc::new(MutableTermBox::new(term.clone()))
 }
 
 #[rustler::nif]
-fn term_get(env: Env, resource: ResourceArc<Buffer>) -> Term {
-    let term_binary = resource.data.read().unwrap();
-    let (term, _size) = env.binary_to_term(term_binary.as_slice()).unwrap();
-    term
+fn term_get<'a>(env: Env<'a>, resource: ResourceArc<MutableTermBox>) -> Term<'a> {
+    resource.get(env)
 }
 
 #[rustler::nif]
-fn term_set(resource: ResourceArc<Buffer>, term: Term) -> Atom {
-    let mut data = resource.data.write().unwrap();
-    data.clear();
-    data.write(term.to_binary().as_slice()).unwrap();
-    data.shrink_to_fit();
+fn term_set(resource: ResourceArc<MutableTermBox>, term: Term) -> Atom {
+    resource.set(term)
+}
 
-    atoms::ok()
+use rustler::env::OwnedEnv;
+use rustler::env::SavedTerm;
+
+pub struct MutableTermBox
+{
+    inner: std::sync::Mutex<MutableTermBoxContents>,
+}
+
+pub struct MutableTermBoxContents
+{
+    owned_env: OwnedEnv,
+    saved_term: SavedTerm
+}
+
+impl MutableTermBox {
+    pub fn new(term: Term) -> Self {
+        Self{inner: std::sync::Mutex::new(MutableTermBoxContents::new(term))}
+    }
+
+    pub fn get<'a>(&self, env: Env<'a>) -> Term<'a> {
+        let inner = self.inner.lock().unwrap();
+
+        // Copy over term from owned environment to the target environment
+        inner.owned_env.run(|inner_env| {
+            let term = inner.saved_term.load(inner_env);
+            term.in_env(env)
+        })
+    }
+
+    pub fn set(&self, term: Term) -> Atom {
+        let mut term_ptr = self.inner.lock().unwrap();
+        term_ptr.owned_env.clear();
+        term_ptr.saved_term = term_ptr.owned_env.save(term);
+
+        atoms::ok()
+    }
+}
+
+impl MutableTermBoxContents {
+    pub fn new(term: Term) -> Self {
+        let owned_env = OwnedEnv::new();
+        let saved_term = owned_env.save(term);
+        Self{owned_env: owned_env, saved_term: saved_term}
+    }
 }
