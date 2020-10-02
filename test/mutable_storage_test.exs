@@ -4,13 +4,6 @@ defmodule MutableStorageTest do
 
   @sut_module MutableStorage
 
-  test "term" do
-    ref = @sut_module.term_new(42)
-    assert @sut_module.term_get(ref) == 42
-    assert @sut_module.term_set(ref, 43) == :ok
-    assert @sut_module.term_get(ref) == 43
-  end
-
   test "buffer raw size" do
     ref = @sut_module.buffer_new(10)
     assert @sut_module.buffer_raw_size(ref) == 10
@@ -87,5 +80,31 @@ defmodule MutableStorageTest do
 
     @sut_module.buffer_resize(ref, 15)
     assert @sut_module.buffer_raw_size(ref) == 15
+  end
+
+  test "term" do
+    ref = @sut_module.term_new(42)
+    assert @sut_module.term_get(ref) == 42
+    assert @sut_module.term_set(ref, 43) == :ok
+    assert @sut_module.term_get(ref) == 43
+  end
+
+  test "term save atomics" do
+    ref = @sut_module.term_new(:atomics.new(1, []))
+    atomics_ref = @sut_module.term_get(ref)
+    assert :atomics.get(atomics_ref, 1) == 0
+  end
+
+  test "term save atomics from another process" do
+    pid = self()
+    spawn(fn() ->
+      ref = MutableStorage.term_new(:atomics.new(1, []))
+      send(pid, ref)
+    end)
+    receive do
+      ref ->
+        atomics_ref = MutableStorage.term_get(ref)
+        assert :atomics.get(atomics_ref, 1) == 0
+    end
   end
 end
