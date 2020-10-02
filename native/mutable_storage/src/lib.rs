@@ -239,7 +239,7 @@ fn buffer_resize(resource: ResourceArc<Buffer>, new_size: usize) -> Atom {
 
 #[rustler::nif]
 fn term_new(term: Term) -> ResourceArc<MutableTermBox> {
-    ResourceArc::new(MutableTermBox::new(term.clone()))
+    ResourceArc::new(MutableTermBox::new(term))
 }
 
 #[rustler::nif]
